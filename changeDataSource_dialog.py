@@ -27,10 +27,11 @@ import os
 from qgis.PyQt import QtGui, uic, QtWidgets
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.core import QgsBrowserModel, QgsMimeDataUtils
-from .changeDataSource_dialog_base import Ui_changeDataSourceDialogBase
-from .browsedatasource import Ui_dataSourceBrowser
 
-class changeDataSourceDialog(QtWidgets.QDialog, Ui_changeDataSourceDialogBase):
+FORM_CLASS_CDS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'changeDataSource_dialog_base.ui'))
+FORM_CLASS_DSB, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'browsedatasource.ui'))
+
+class changeDataSourceDialog(QtWidgets.QDialog, FORM_CLASS_CDS):
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -48,7 +49,7 @@ class changeDataSourceDialog(QtWidgets.QDialog, Ui_changeDataSourceDialogBase):
     def closeEvent(self,evnt):
         self.closedDialog.emit()
 
-class dataSourceBrowser(QtWidgets.QDialog, Ui_dataSourceBrowser):
+class dataSourceBrowser(QtWidgets.QDialog, FORM_CLASS_DSB):
 
     def __init__(self, parent=None):
         """Constructor."""

@@ -29,6 +29,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtXml import *
 from PyQt5.QtWidgets import *
 from qgis.core import *
+
 # Initialize Qt resources from file resources.py
 from . import resources_rc
 # Import the code for the dialog
@@ -187,14 +188,22 @@ class changeDataSource(object):
         self.connectSignals()
         self.session  = 0
 
+    def onHeaderClicked(self, idx):
+        self.dlg.layerTable.sortByColumn(idx, Qt.DescendingOrder)
+        self.dlg.layerTable.sortByItem(idx, Qt.DescendingOrder)
+        
     def connectSignals(self):
         self.changeDSActionVector.triggered.connect(self.changeLayerDS)
         self.changeDSActionRaster.triggered.connect(self.changeLayerDS)
         self.dlg.replaceButton.clicked.connect(self.replaceDS)
         self.dlg.layerTable.verticalHeader().sectionClicked.connect(self.activateSelection)
+        self.dlg.layerTable.horizontalHeader().sectionClicked.connect(self.onHeaderClicked)
+        
         self.dlg.buttonBox.button(QDialogButtonBox.Reset).clicked.connect(lambda: self.buttonBoxHub("Reset"))
         self.dlg.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(lambda: self.buttonBoxHub("Apply"))
         self.dlg.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(lambda: self.buttonBoxHub("Cancel"))
+        
+        
         #self.dlg.reconcileButton.clicked.connect(self.reconcileUnhandled)
         self.dlg.closedDialog.connect(self.removeServiceLayers)
         #self.dlg.handleBadLayersCheckbox.stateChanged.connect(self.handleBadLayerOption)
@@ -202,7 +211,7 @@ class changeDataSource(object):
         #self.iface.projectRead.connect(self.recoverUnhandledLayers)
         self.iface.newProjectCreated.connect(self.updateSession)
         #self.initHandleBadLayers()
-
+    
     def setEmbeddedLayer(self,layer):
         root = QgsProject.instance().layerTreeRoot()
         layerNode = root.findLayer(layer.id())
@@ -276,8 +285,12 @@ class changeDataSource(object):
                 if provider:
                     lastRow = self.dlg.layerTable.rowCount()
                     self.dlg.layerTable.insertRow(lastRow)
+                    lyr_nme = layer.name()
+                    if not layer.isValid():
+                        lyr_nme = f"* {lyr_nme}"
+
                     self.dlg.layerTable.setCellWidget(lastRow,0,self.getLabelWidget(layer.id(),0,style = cellStyle))
-                    self.dlg.layerTable.setCellWidget(lastRow,1,self.getLabelWidget(layer.name(),1,style = cellStyle))
+                    self.dlg.layerTable.setCellWidget(lastRow,1,self.getLabelWidget(lyr_nme,1,style = cellStyle))
                     self.dlg.layerTable.setCellWidget(lastRow,2,self.getLabelWidget(provider,2,style = cellStyle))
                     self.dlg.layerTable.setCellWidget(lastRow,3,self.getLabelWidget(source,3,style = cellStyle))
                     self.dlg.layerTable.setCellWidget(lastRow,4,self.getButtonWidget(lastRow))
@@ -304,6 +317,8 @@ class changeDataSource(object):
         self.dlg.layerTable.setColumnWidth(4,30)
         self.dlg.layerTable.setShowGrid(False)
         self.dlg.layerTable.horizontalHeader().setSectionResizeMode(3,QHeaderView.Stretch) # was QHeaderView.Stretch
+        self.dlg.layerTable.setSortingEnabled(True)
+        self.dlg.layerTable.horizontalHeader().setSectionsClickable(True)
 
     def getButtonWidget(self,row):
         edit = QPushButton("...",parent = self.dlg.layerTable)
